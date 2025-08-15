@@ -58,8 +58,7 @@ public class UserService {
     }
 
     private void checkEmailExists(String email) {
-        if (userRepository.getUsers().stream()
-                .anyMatch(user -> user.getEmail().equals(email))) {
+        if (userRepository.emailExists(email)) {
             throw new ValidationException("Email already exists: " + email);
         }
     }
