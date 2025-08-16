@@ -13,42 +13,41 @@ import ru.practicum.shareit.user.model.User;
 
 import java.util.List;
 
-import static ru.practicum.shareit.user.mappers.UserMapper.*;
-
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     public UserDto createUser(NewUserRequest request) {
         checkEmailExists(request.email());
-        User user = mapToUser(request);
+        User user = userMapper.fromNewRequest(request);
         user.setId(getNextId());
         user = userRepository.create(user);
         log.info("Добавлен новый пользователь \"{}\" c id {}", user.getName(), user.getId());
-        return mapToUserDto(user);
+        return userMapper.toDto(user);
     }
 
     public UserDto getUserById(long userId) {
-        return mapToUserDto(getUserByIdOrThrow(userId));
+        return userMapper.toDto(getUserByIdOrThrow(userId));
     }
 
     public List<UserDto> getUsers() {
         return userRepository.getUsers().stream()
-                .map(UserMapper::mapToUserDto)
+                .map(userMapper::toDto)
                 .toList();
     }
 
     public UserDto updateUser(long userId, UpdateUserRequest request) {
-        User updatedUser = getUserByIdOrThrow(userId);
+        User user = getUserByIdOrThrow(userId);
         if (request.email() != null) {
             checkEmailExists(request.email());
         }
-        updateUserFields(updatedUser, request);
-        updatedUser = userRepository.update(updatedUser);
-        log.info("Обновлен пользователь \"{}\" с id {}", updatedUser.getName(), updatedUser.getId());
-        return mapToUserDto(updatedUser);
+        userMapper.updateUserFromRequest(user, request);
+        user = userRepository.update(user);
+        log.info("Обновлен пользователь \"{}\" с id {}", user.getName(), user.getId());
+        return userMapper.toDto(user);
     }
 
     public void deleteUser(long userId) {

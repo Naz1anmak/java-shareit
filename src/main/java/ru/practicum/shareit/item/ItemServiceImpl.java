@@ -14,36 +14,34 @@ import ru.practicum.shareit.user.UserService;
 
 import java.util.List;
 
-import static ru.practicum.shareit.item.mappers.ItemMapper.*;
-
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
     private final UserService userService;
     private final ItemRepository itemRepository;
+    private final ItemMapper itemMapper;
 
     @Override
     public ItemDto createItem(NewItemRequest request, long ownerId) {
         userService.getUserById(ownerId);
-        Item item = mapToItem(request, ownerId);
+        Item item = itemMapper.fromNewRequest(request, ownerId);
         item.setId(getNextId());
         item = itemRepository.create(item);
         log.info("Добавлена новая вещь \"{}\" c id {}", item.getName(), item.getId());
-        return mapToItemDto(item);
+        return itemMapper.toDto(item);
     }
 
     @Override
     public ItemDto getItemById(long itemId) {
-        return mapToItemDto(getItemByIdOrThrow(itemId));
+        return itemMapper.toDto(getItemByIdOrThrow(itemId));
     }
 
     @Override
     public List<ItemDto> getPersonalItems(long ownerId) {
         userService.getUserById(ownerId);
-        return itemRepository.getItems(ownerId)
-                .stream()
-                .map(ItemMapper::mapToItemDto)
+        return itemRepository.getItems(ownerId).stream()
+                .map(itemMapper::toDto)
                 .toList();
     }
 
@@ -54,10 +52,10 @@ public class ItemServiceImpl implements ItemService {
         if (item.getOwnerId() != ownerId) {
             throw new ValidationException("Item with ID " + itemId + " does not belong to you");
         }
-        updateItemFields(item, request);
+        itemMapper.updateItemFromRequest(item, request);
         item = itemRepository.update(item);
         log.info("Обновлена вещь \"{}\" с id {}", item.getName(), item.getId());
-        return mapToItemDto(item);
+        return itemMapper.toDto(item);
     }
 
     @Override
@@ -67,7 +65,7 @@ public class ItemServiceImpl implements ItemService {
                 .filter(item -> (item.getName().toLowerCase().contains(text.toLowerCase())
                         || item.getDescription().toLowerCase().contains(text.toLowerCase()))
                         && item.getAvailable())
-                .map(ItemMapper::mapToItemDto)
+                .map(itemMapper::toDto)
                 .toList();
     }
 

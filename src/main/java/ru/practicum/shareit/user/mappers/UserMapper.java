@@ -1,32 +1,19 @@
 package ru.practicum.shareit.user.mappers;
 
+import org.mapstruct.*;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.dto.NewUserRequest;
 import ru.practicum.shareit.user.dto.UpdateUserRequest;
 import ru.practicum.shareit.user.dto.UserDto;
 
-public class UserMapper {
-    public static User mapToUser(NewUserRequest request) {
-        User user = new User();
-        user.setName(request.name());
-        user.setEmail(request.email());
-        return user;
-    }
+@Mapper(componentModel = "spring")
+public interface UserMapper {
+    UserDto toDto(User user);
 
-    public static UserDto mapToUserDto(User user) {
-        return new UserDto(
-                user.getId(),
-                user.getName(),
-                user.getEmail()
-        );
-    }
+    @Mapping(target = "id", ignore = true)
+    User fromNewRequest(NewUserRequest request);
 
-    public static void updateUserFields(User user, UpdateUserRequest request) {
-        if (request.hasName()) {
-            user.setName(request.name());
-        }
-        if (request.hasEmail()) {
-            user.setEmail(request.email());
-        }
-    }
+    @Mapping(target = "id", ignore = true)
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void updateUserFromRequest(@MappingTarget User user, UpdateUserRequest request);
 }
