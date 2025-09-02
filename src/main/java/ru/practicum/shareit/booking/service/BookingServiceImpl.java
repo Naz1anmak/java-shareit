@@ -1,6 +1,5 @@
-package ru.practicum.shareit.booking;
+package ru.practicum.shareit.booking.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,28 +9,44 @@ import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingState;
 import ru.practicum.shareit.booking.model.BookingStatus;
+import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.booking.service.strategy.BookingFetchStrategy;
 import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.ForbiddenException;
 import ru.practicum.shareit.exception.ValidationException;
-import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.user.UserService;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
 @Slf4j
-@RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
+    private final Map<BookingState, BookingFetchStrategy> strategies;
     private final BookingRepository bookingRepository;
     private final BookingMapper bookingMapper;
     private final ItemService itemService;
     private final UserService userService;
+
+    public BookingServiceImpl(List<BookingFetchStrategy> strategies,
+                              BookingRepository bookingRepository,
+                              BookingMapper bookingMapper,
+                              ItemService itemService,
+                              UserService userService) {
+        this.strategies = strategies.stream()
+                .collect(Collectors.toMap(BookingFetchStrategy::getState, strategy -> strategy));
+        this.bookingRepository = bookingRepository;
+        this.bookingMapper = bookingMapper;
+        this.itemService = itemService;
+        this.userService = userService;
+    }
 
     @Override
     @Transactional
@@ -99,17 +114,7 @@ public class BookingServiceImpl implements BookingService {
         userService.getUserByIdOrThrow(bookerId);
 
         LocalDateTime now = LocalDateTime.now();
-
-        List<Booking> bookings = switch (state) {
-            case ALL -> bookingRepository.findByBookerIdOrderByStartDesc(bookerId);
-            case CURRENT -> bookingRepository.findByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(bookerId, now, now);
-            case PAST -> bookingRepository.findByBookerIdAndEndBeforeOrderByStartDesc(bookerId, now);
-            case FUTURE -> bookingRepository.findByBookerIdAndStartAfterOrderByStartDesc(bookerId, now);
-            case WAITING -> bookingRepository.findByBookerIdAndStatusOrderByStartDesc(bookerId, BookingStatus.WAITING);
-            case REJECTED -> bookingRepository.findByBookerIdAndStatusOrderByStartDesc(bookerId, BookingStatus.REJECTED);
-        };
-
-        return bookings.stream()
+        return strategies.get(state).fetchBookings(bookerId, false, now).stream()
                 .map(bookingMapper::toDto)
                 .toList();
     }
@@ -119,20 +124,7 @@ public class BookingServiceImpl implements BookingService {
         userService.getUserByIdOrThrow(ownerId);
 
         LocalDateTime now = LocalDateTime.now();
-
-        List<Booking> bookings = switch (state) {
-            case ALL -> bookingRepository.findByItemOwnerIdOrderByStartDesc(ownerId);
-            case CURRENT ->
-                    bookingRepository.findByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(ownerId, now, now);
-            case PAST -> bookingRepository.findByItemOwnerIdAndEndBeforeOrderByStartDesc(ownerId, now);
-            case FUTURE -> bookingRepository.findByItemOwnerIdAndStartAfterOrderByStartDesc(ownerId, now);
-            case WAITING ->
-                    bookingRepository.findByItemOwnerIdAndStatusOrderByStartDesc(ownerId, BookingStatus.WAITING);
-            case REJECTED ->
-                    bookingRepository.findByItemOwnerIdAndStatusOrderByStartDesc(ownerId, BookingStatus.REJECTED);
-        };
-
-        return bookings.stream()
+        return strategies.get(state).fetchBookings(ownerId, true, now).stream()
                 .map(bookingMapper::toDto)
                 .toList();
     }

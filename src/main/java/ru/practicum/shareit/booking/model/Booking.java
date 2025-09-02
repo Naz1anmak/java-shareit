@@ -48,6 +48,6 @@ public class Booking {
 
     @Override
     public int hashCode() {
-        return getClass().hashCode();
+        return id == null ? 0 : id.hashCode();
     }
 }

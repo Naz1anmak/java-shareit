@@ -1,7 +1,9 @@
 package ru.practicum.shareit.item.model;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
@@ -44,6 +46,6 @@ public class Comment {
 
     @Override
     public int hashCode() {
-        return getClass().hashCode();
+        return id == null ? 0 : id.hashCode();
     }
 }
