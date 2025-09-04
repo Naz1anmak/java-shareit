@@ -28,4 +28,24 @@ public class ErrorHandler {
                 exception.getMessage()
         );
     }
+
+    @ExceptionHandler(BadRequestException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleBadRequestException(BadRequestException exception, HttpServletRequest request) {
+        return new ErrorResponse(
+                request.getRequestURI(),
+                HttpStatus.BAD_REQUEST.value(),
+                exception.getMessage()
+        );
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponse handleForbiddenException(ForbiddenException exception, HttpServletRequest request) {
+        return new ErrorResponse(
+                request.getRequestURI(),
+                HttpStatus.FORBIDDEN.value(),
+                exception.getMessage()
+        );
+    }
 }

@@ -1,4 +1,4 @@
-package ru.practicum.shareit.user.mappers;
+package ru.practicum.shareit.user.mapper;
 
 import org.mapstruct.*;
 import ru.practicum.shareit.user.model.User;
