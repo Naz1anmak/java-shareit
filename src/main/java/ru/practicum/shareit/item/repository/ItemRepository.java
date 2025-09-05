@@ -5,7 +5,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import ru.practicum.shareit.item.model.Item;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
 public interface ItemRepository extends JpaRepository<Item, Long> {
     @Query("SELECT i FROM Item i " +
@@ -23,4 +24,6 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
             "left join fetch i.comments c " +
             "where i.owner.id = :ownerId")
     List<Item> findByOwnerIdWithComments(@Param("ownerId") Long ownerId);
+
+    List<Item> findByRequestIdIn(List<Long> requestIds);
 }

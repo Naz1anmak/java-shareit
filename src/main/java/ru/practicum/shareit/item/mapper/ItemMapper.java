@@ -13,12 +13,14 @@ public interface ItemMapper {
     ItemDto toDto(Item item);
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "comments", ignore = true)
     @Mapping(source = "request.name", target = "name")
+    @Mapping(target = "request", ignore = true)
+    @Mapping(target = "comments", ignore = true)
     Item fromNewRequest(NewItemRequest request, User owner);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "owner", ignore = true)
+    @Mapping(target = "request", ignore = true)
     @Mapping(target = "comments", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateItemFromRequest(@MappingTarget Item item, UpdateItemRequest request);

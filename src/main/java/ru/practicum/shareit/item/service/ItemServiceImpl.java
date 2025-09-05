@@ -16,8 +16,10 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
-import ru.practicum.shareit.user.UserService;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.service.ItemRequestService;
 import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.service.UserService;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -35,12 +37,19 @@ public class ItemServiceImpl implements ItemService {
     private final ItemMapper itemMapper;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
+    private final ItemRequestService itemRequestService;
 
     @Override
     @Transactional
     public ItemDto createItem(NewItemRequest request, long ownerId) {
         User owner = userService.getUserByIdOrThrow(ownerId);
         Item item = itemMapper.fromNewRequest(request, owner);
+
+        if (request.requestId() != null) {
+            ItemRequest itemRequest = itemRequestService.getItemRequestByIdOrThrow(request.requestId());
+            item.setRequest(itemRequest);
+        }
+
         item = itemRepository.save(item);
         log.info("Добавлена новая вещь \"{}\" c id {}", item.getName(), item.getId());
         return itemMapper.toDto(item);

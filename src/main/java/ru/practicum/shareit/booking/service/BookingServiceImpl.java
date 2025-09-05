@@ -16,8 +16,8 @@ import ru.practicum.shareit.exception.ForbiddenException;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
-import ru.practicum.shareit.user.UserService;
 import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.service.UserService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -87,9 +87,9 @@ public class BookingServiceImpl implements BookingService {
         }
 
         if (approved) {
-            booking.setStatus(BookingStatus.APPROVED);
+            booking.approve();
         } else {
-            booking.setStatus(BookingStatus.REJECTED);
+            booking.reject();
         }
 
         booking = bookingRepository.save(booking);
