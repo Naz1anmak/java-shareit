@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "item_requests")
 @Getter
-@Setter(AccessLevel.PROTECTED)
+@Setter
 @ToString
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ItemRequest {
