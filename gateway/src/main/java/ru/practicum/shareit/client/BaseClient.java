@@ -8,6 +8,8 @@ import org.springframework.web.client.RestTemplate;
 import java.util.List;
 import java.util.Map;
 
+import static ru.practicum.shareit.constants.HeaderConstants.USER_ID_HEADER;
+
 public class BaseClient {
     protected final RestTemplate rest;
 
@@ -43,20 +45,12 @@ public class BaseClient {
         return makeAndSendRequest(HttpMethod.POST, path, userId, parameters, body);
     }
 
-    protected <T> ResponseEntity<Object> put(String path, long userId, T body) {
-        return put(path, userId, null, body);
-    }
-
     protected <T> ResponseEntity<Object> put(String path, long userId, @Nullable Map<String, Object> parameters, T body) {
         return makeAndSendRequest(HttpMethod.PUT, path, userId, parameters, body);
     }
 
     protected <T> ResponseEntity<Object> patch(String path, T body) {
         return patch(path, null, null, body);
-    }
-
-    protected <T> ResponseEntity<Object> patch(String path, long userId) {
-        return patch(path, userId, null, null);
     }
 
     protected <T> ResponseEntity<Object> patch(String path, long userId, T body) {
@@ -69,10 +63,6 @@ public class BaseClient {
 
     protected ResponseEntity<Object> delete(String path) {
         return delete(path, null, null);
-    }
-
-    protected ResponseEntity<Object> delete(String path, long userId) {
-        return delete(path, userId, null);
     }
 
     protected ResponseEntity<Object> delete(String path, Long userId, @Nullable Map<String, Object> parameters) {
@@ -100,7 +90,7 @@ public class BaseClient {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
         if (userId != null) {
-            headers.set("X-Sharer-User-Id", String.valueOf(userId));
+            headers.set(USER_ID_HEADER, String.valueOf(userId));
         }
         return headers;
     }
